@@ -6,18 +6,18 @@ module Phase4
     attr_reader :session
 
     def redirect_to(url)
-      super
-      @session.store_session(@res)
+      super(url)
+      self.session.store_session(@res)
     end
 
     def render_content(content, content_type)
-      super
-      @session.store_session(@res)
+      super(content, content_type)
+      self.session.store_session(@res)
     end
 
     # method exposing a `Session` object
     def session
-      @session ||= Session.new(@res)
+      @session ||= Phase4::Session.new(@res)
     end
   end
 end

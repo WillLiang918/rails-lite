@@ -14,23 +14,13 @@ module Phase5
       @params = Hash.new
       req_string = req.query_string
       req_body = req.body
-
-      unless req_string.nil?
-        parse_www_encoded_form(req_string).each do |param|
-          @params[param[0]] = param[1]
-        end
-      end
-
-      unless req_body.nil?
-        parse_www_encoded_form(req_body).each do |param|
-          @params[param[0]] = param[1]
-        end
-      end
+      parse_www_encoded_form(req_string) unless req_string.nil?
+      parse_www_encoded_form(req_body) unless req_body.nil?
+      @params.merge!(route_params)
     end
 
     def [](key)
-      @params[key]
-
+      @params.symbolize_keys![key.to_sym]
     end
 
     # this will be useful if we want to `puts params` in the server log
@@ -47,13 +37,24 @@ module Phase5
     # should return
     # { "user" => { "address" => { "street" => "main", "zip" => "89436" } } }
     def parse_www_encoded_form(www_encoded_form)
-      hash = URI::decode_www_form(www_encoded_form)
+      key_value_array = URI::decode_www_form(www_encoded_form)
+      key_value_array.each do |key, value|
+        @current_scope = @params
+
+        parsed_key = parse_key(key)
+        parsed_key.each_with_index do |key, i|
+          @current_scope[key] ||= (i == parsed_key.length - 1) ? value : {}
+          @current_scope = @current_scope[key]
+        end
+
+        @current_scope = value
+      end
     end
 
     # this should return an array
     # user[address][street] should return ['user', 'address', 'street']
     def parse_key(key)
-      return key if key.class != array
+      key.split(/\]\[|\[|\]/)
     end
   end
 end

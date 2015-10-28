@@ -31,6 +31,8 @@ describe Phase6::Route do
       allow(req).to receive(:request_method) { :get }
       expect(index_route.matches?(req)).to be_falsey
     end
+
+
   end
 
   describe "#run" do
@@ -113,4 +115,5 @@ describe Phase6::Router do
       expect(router.routes.count).to eq(1)
     end
   end
+
 end
